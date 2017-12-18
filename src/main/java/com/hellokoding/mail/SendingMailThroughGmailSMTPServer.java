@@ -24,6 +24,7 @@ public class SendingMailThroughGmailSMTPServer {
         props.put("mail.smtp.starttls.required", "true");
         props.put("mail.smtp.sasl.enable", "false");
         session = Session.getInstance(props);
+        session.setDebug(true);
 
         SMTPTransport transport = new SMTPTransport(session, null);
         transport.connect(host, port, userEmail, null);
