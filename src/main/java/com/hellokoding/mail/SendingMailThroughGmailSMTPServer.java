@@ -48,21 +48,8 @@ public class SendingMailThroughGmailSMTPServer {
             message.setDataHandler(handler);
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmails));
             smtpTransport.sendMessage(message, message.getAllRecipients());
-
-
         } catch (MessagingException e) {
             Logger.getLogger(SendingMailThroughGmailSMTPServer.class.getName()).log(Level.SEVERE, e.getMessage(), e);
         }
-    }
-
-    public static void main(String[] args) {
-        String fromUserEmail = args[0];
-        String fromUserAccessToken = args[1];
-        String toUserEmail = args[2];
-        String subject = args[3];
-        String body = args[4];
-
-        SendingMailThroughGmailSMTPServer sendingMailThroughGmailSMTPServer = new SendingMailThroughGmailSMTPServer();
-        sendingMailThroughGmailSMTPServer.sendMail(fromUserEmail, fromUserAccessToken, toUserEmail, subject, body);
     }
 }

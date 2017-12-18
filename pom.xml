@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <exec.mainClass>com.hellokoding.mail.SendingMailThroughGmailSMTPServer</exec.mainClass>
+        <exec.mainClass>com.hellokoding.mail.Main</exec.mainClass>
     </properties>
 
     <dependencies>
