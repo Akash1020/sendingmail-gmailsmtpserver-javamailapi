@@ -4,53 +4,37 @@ package com.hellokoding.mail;
 import com.sun.mail.smtp.SMTPTransport;
 import com.sun.mail.util.BASE64EncoderStream;
 
-import javax.activation.DataHandler;
 import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.mail.util.ByteArrayDataSource;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SendingMailThroughGmailSMTPServer {
-    Session session;
-
-    SMTPTransport connectToSmtpServer(String host, int port, String userEmail,String userAccessToken) throws MessagingException {
-        Properties props = new Properties();
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.starttls.required", "true");
-        props.put("mail.smtp.sasl.enable", "false");
-        session = Session.getInstance(props);
-        session.setDebug(true);
-
-        SMTPTransport transport = new SMTPTransport(session, null);
-        transport.connect(host, port, userEmail, null);
-
-        byte[] response = String.format("user=%s\1auth=Bearer %s\1\1", userEmail, userAccessToken).getBytes();
-        response = BASE64EncoderStream.encode(response);
-
-        transport.issueCommand("AUTH XOAUTH2 " + new String(response),
-                235);
-
-        return transport;
-    }
-
-    void sendMail(String fromUserEmail, String fromUserAccessToken, String toEmails, String subject, String body) {
+    void sendMail(String smtpServerHost, String smtpServerPort,  String smtpUserName, String smtpUserAccessToken, String fromUserEmail, String fromUserFullName, String toEmail, String subject, String body) {
         try {
-            SMTPTransport smtpTransport = connectToSmtpServer("smtp.gmail.com",587, fromUserEmail, fromUserAccessToken);
+            Properties props = System.getProperties();
+            props.put("mail.transport.protocol", "smtp");
+            props.put("mail.smtp.port", smtpServerPort);
+            props.put("mail.smtp.starttls.enable", "true");
 
-            MimeMessage message = new MimeMessage(session);
-            DataHandler handler = new DataHandler(new ByteArrayDataSource(body.getBytes(), "text/plain"));
-            message.setSender(new InternetAddress(fromUserEmail));
-            message.setSubject(subject);
-            message.setDataHandler(handler);
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmails));
-            smtpTransport.sendMessage(message, message.getAllRecipients());
-        } catch (MessagingException e) {
-            Logger.getLogger(SendingMailThroughGmailSMTPServer.class.getName()).log(Level.SEVERE, e.getMessage(), e);
+            Session session = Session.getDefaultInstance(props);
+            session.setDebug(true);
+
+            MimeMessage msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress(fromUserEmail, fromUserFullName));
+            msg.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
+            msg.setSubject(subject);
+            msg.setContent(body, "text/html");
+
+            SMTPTransport transport = new SMTPTransport(session, null);
+            transport.connect(smtpServerHost, smtpUserName, null);
+            transport.issueCommand("AUTH XOAUTH2 " + new String(BASE64EncoderStream.encode(String.format("user=%s\1auth=Bearer %s\1\1", smtpUserName, smtpUserAccessToken).getBytes())), 235);
+            transport.sendMessage(msg, msg.getAllRecipients());
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
 }
